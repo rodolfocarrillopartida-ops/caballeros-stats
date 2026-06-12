@@ -1,0 +1,1 @@
+web: echo "s" | python seed_2026.py; gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 1 --timeout 120
