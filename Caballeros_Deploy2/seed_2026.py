@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 seed_2026.py — Carga la Temporada 2026 de Caballeros de Culiacán (CIBACOPA)
-Datos reales extraídos de latinbasket.com y sofascore.com
+Datos reales extraídos de sofascore.com y cibacopa.mx
+Equipos correctos 2026: sin Soles de Mexicali; incluye Zonkeys de Tijuana y Rayos de Hermosillo
 
 Ejecutar UNA sola vez desde la carpeta caballeros_stats/:
     python3 seed_2026.py
@@ -20,10 +21,6 @@ from models import db, Temporada, Jugador, Partido, StatJugador, StatRival
 
 app = create_app()
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  PLANTEL REAL 2026  (fuente: latinbasket.com / sofascore.com)
-#  Formato: (nombre, número, posición)
-# ══════════════════════════════════════════════════════════════════════════════
 PLANTEL = [
     ("Torren Jones",            9,  "Pívot"),
     ("Roddy Peters",            5,  "Base"),
@@ -55,12 +52,7 @@ PLANTEL = [
     ("Omar Ayala",              8,  "Alero"),
 ]
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  STATS TOTALES DE TEMPORADA 2026  (fuente: latinbasket.com)
-#  Columnas: nombre, G, MIN, FGM, FGA, T3M, T3A, FTM, FTA, RO, RD, AST, ST, BS, TO, PTS
-# ══════════════════════════════════════════════════════════════════════════════
 STATS_TEMPORADA = [
-    # nombre                   G   MIN   FGM  FGA  T3M  T3A  FTM  FTA  RO   RD  AST  ST  BS  TO   PTS
     ("Torren Jones",          44, 1480,  315, 537,   0,   7, 163, 249, 126, 273,  59, 53, 14,  73,  793),
     ("Roddy Peters",          44, 1401,  225, 400,  52, 144, 166, 205,  21, 135, 364, 84,  9, 158,  772),
     ("Johnny Hughes III",     44, 1146,  159, 286,  33,  93, 193, 224,  54, 188,  46, 61, 30,  60,  610),
@@ -91,64 +83,57 @@ STATS_TEMPORADA = [
     ("Lamar Peters",           0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,   0,    0),
 ]
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  RESULTADOS DE TEMPORADA  (fuente: sofascore.com / latinbasket.com)
-#  Fase Regular (40 juegos: 18V-22L) + Playoffs Ronda 1 (5 juegos vs Astros: 1V-4L)
-# ══════════════════════════════════════════════════════════════════════════════
 PARTIDOS = [
-    # Fase Regular
-    (date(2026,  2, 21), "Venados de Mazatlán",          85,  78, True,  "Regular"),
-    (date(2026,  2, 24), "Soles de Mexicali",             72,  80, False, "Regular"),
-    (date(2026,  2, 27), "Pioneros de Los Mochis",        90,  84, True,  "Regular"),
-    (date(2026,  3,  3), "Astros de Jalisco",             68,  75, False, "Regular"),
-    (date(2026,  3,  6), "Frayles de Guasave",            88,  82, True,  "Regular"),
-    (date(2026,  3,  8), "Halcones de Obregón",           74,  80, False, "Regular"),
-    (date(2026,  3, 10), "Ángeles de Ciudad de México",   91,  77, True,  "Regular"),
-    (date(2026,  3, 13), "Toros Laguna",                  65,  88, False, "Regular"),
-    (date(2026,  3, 15), "Venados de Mazatlán",           79,  72, True,  "Regular"),
-    (date(2026,  3, 17), "Ostioneros de Guaymas",         83,  90, False, "Regular"),
-    (date(2026,  3, 20), "Pioneros de Los Mochis",        77,  81, False, "Regular"),
-    (date(2026,  3, 22), "Astros de Jalisco",             95,  87, True,  "Regular"),
-    (date(2026,  3, 24), "Frayles de Guasave",            70,  84, False, "Regular"),
-    (date(2026,  3, 27), "Halcones de Obregón",           86,  80, True,  "Regular"),
-    (date(2026,  3, 29), "Ángeles de Ciudad de México",   63,  71, False, "Regular"),
-    (date(2026,  4,  3), "Toros Laguna",                  89,  85, True,  "Regular"),
-    (date(2026,  4,  5), "Venados de Mazatlán",           74,  79, False, "Regular"),
-    (date(2026,  4,  7), "Ostioneros de Guaymas",         92,  88, True,  "Regular"),
-    (date(2026,  4, 10), "Pioneros de Los Mochis",        80,  75, True,  "Regular"),
-    (date(2026,  4, 12), "Astros de Jalisco",             67,  78, False, "Regular"),
-    (date(2026,  4, 14), "Frayles de Guasave",            81,  80, True,  "Regular"),
-    (date(2026,  4, 17), "Halcones de Obregón",           69,  77, False, "Regular"),
-    (date(2026,  4, 19), "Ángeles de Ciudad de México",   88,  76, True,  "Regular"),
-    (date(2026,  4, 21), "Toros Laguna",                  71,  83, False, "Regular"),
-    (date(2026,  4, 24), "Venados de Mazatlán",           94,  91, True,  "Regular"),
-    (date(2026,  4, 26), "Ostioneros de Guaymas",         66,  74, False, "Regular"),
-    (date(2026,  4, 28), "Pioneros de Los Mochis",        84,  78, True,  "Regular"),
-    (date(2026,  5,  1), "Astros de Jalisco",             73,  82, False, "Regular"),
-    (date(2026,  5,  3), "Frayles de Guasave",            79,  85, False, "Regular"),
-    (date(2026,  5,  5), "Halcones de Obregón",           90,  83, True,  "Regular"),
-    (date(2026,  5,  8), "Ángeles de Ciudad de México",   68,  72, False, "Regular"),
-    (date(2026,  5, 10), "Toros Laguna",                  85,  78, True,  "Regular"),
-    (date(2026,  5, 12), "Venados de Mazatlán",           71,  80, False, "Regular"),
-    (date(2026,  5, 15), "Ostioneros de Guaymas",         96, 106, True,  "Regular"),   # score real
-    (date(2026,  5, 16), "Ostioneros de Guaymas",         94,  81, True,  "Regular"),   # score real (W)
-    (date(2026,  5, 17), "Pioneros de Los Mochis",        64,  79, False, "Regular"),
-    (date(2026,  5, 19), "Astros de Jalisco",             88,  81, True,  "Regular"),
-    (date(2026,  5, 22), "Frayles de Guasave",            66,  73, False, "Regular"),
-    (date(2026,  5, 24), "Halcones de Obregón",           83,  77, True,  "Regular"),
-    (date(2026,  5,  9), "Toros Laguna",                  89, 102, False, "Regular"),   # score real (L)
-    # Playoffs Ronda 1 vs Astros de Jalisco
-    (date(2026,  5, 22), "Astros de Jalisco",             86,  94, False, "Playoffs"),  # G1 (W por Caballeros)
-    (date(2026,  5, 23), "Astros de Jalisco",             84, 112, False, "Playoffs"),  # G2 (L)
-    (date(2026,  5, 26), "Astros de Jalisco",             80,  94, True,  "Playoffs"),  # G3 (L)
-    (date(2026,  5, 27), "Astros de Jalisco",             87,  95, True,  "Playoffs"),  # G4 (L)
-    (date(2026,  5, 29), "Astros de Jalisco",            103, 105, True,  "Playoffs"),  # G5 (L - eliminados)
+    (date(2026,  2, 22), "Venados de Mazatlán",               95,  83, True,  "Regular"),
+    (date(2026,  2, 23), "Venados de Mazatlán",               79,  98, True,  "Regular"),
+    (date(2026,  3, 23), "Zonkeys de Tijuana",                 90,  88, True,  "Regular"),
+    (date(2026,  3, 25), "Astros de Jalisco",                  86, 103, False, "Regular"),
+    (date(2026,  3, 26), "Astros de Jalisco",                  98, 105, False, "Regular"),
+    (date(2026,  3, 29), "Toros Laguna",                       87,  91, True,  "Regular"),
+    (date(2026,  3, 30), "Toros Laguna",                       88,  74, True,  "Regular"),
+    (date(2026,  4,  1), "Ángeles de la Ciudad de México",     85,  88, False, "Regular"),
+    (date(2026,  4,  2), "Ángeles de la Ciudad de México",     88,  97, False, "Regular"),
+    (date(2026,  4,  5), "Halcones de Ciudad Obregón",        137, 143, True,  "Regular"),
+    (date(2026,  4,  6), "Halcones de Ciudad Obregón",         78,  82, True,  "Regular"),
+    (date(2026,  4,  8), "Astros de Jalisco",                  75,  92, True,  "Regular"),
+    (date(2026,  4,  9), "Astros de Jalisco",                  79, 102, True,  "Regular"),
+    (date(2026,  4, 11), "Venados de Mazatlán",               110, 103, False, "Regular"),
+    (date(2026,  4, 12), "Venados de Mazatlán",               101,  92, False, "Regular"),
+    (date(2026,  4, 13), "Rayos de Hermosillo",                88,  79, True,  "Regular"),
+    (date(2026,  4, 14), "Rayos de Hermosillo",                91,  82, True,  "Regular"),
+    (date(2026,  4, 16), "Pioneros de Los Mochis",             95,  88, True,  "Regular"),
+    (date(2026,  4, 17), "Pioneros de Los Mochis",             84,  90, True,  "Regular"),
+    (date(2026,  4, 19), "Halcones de Ciudad Obregón",         88,  91, False, "Regular"),
+    (date(2026,  4, 20), "Halcones de Ciudad Obregón",         93,  87, False, "Regular"),
+    (date(2026,  4, 22), "Frayles de Guasave",                 96,  80, True,  "Regular"),
+    (date(2026,  4, 23), "Frayles de Guasave",                 93,  88, True,  "Regular"),
+    (date(2026,  4, 25), "Zonkeys de Tijuana",                 86,  82, False, "Regular"),
+    (date(2026,  4, 26), "Zonkeys de Tijuana",                114,  94, False, "Regular"),
+    (date(2026,  4, 27), "Zonkeys de Tijuana",                 91,  85, True,  "Regular"),
+    (date(2026,  4, 29), "Ángeles de la Ciudad de México",     94,  89, True,  "Regular"),
+    (date(2026,  4, 30), "Ángeles de la Ciudad de México",     85,  92, True,  "Regular"),
+    (date(2026,  5,  2), "Frayles de Guasave",                 87,  93, False, "Regular"),
+    (date(2026,  5,  3), "Frayles de Guasave",                 91,  85, False, "Regular"),
+    (date(2026,  5,  5), "Ostioneros de Guaymas",              89,  96, False, "Regular"),
+    (date(2026,  5,  6), "Ostioneros de Guaymas",              85,  91, False, "Regular"),
+    (date(2026,  5,  7), "Toros Laguna",                       82,  88, False, "Regular"),
+    (date(2026,  5,  9), "Toros Laguna",                       89, 102, False, "Regular"),
+    (date(2026,  5, 11), "Rayos de Hermosillo",                87,  95, False, "Regular"),
+    (date(2026,  5, 12), "Rayos de Hermosillo",                93,  89, False, "Regular"),
+    (date(2026,  5, 15), "Ostioneros de Guaymas",              96, 106, True,  "Regular"),
+    (date(2026,  5, 16), "Ostioneros de Guaymas",              94,  81, True,  "Regular"),
+    (date(2026,  5, 18), "Pioneros de Los Mochis",             88,  97, False, "Regular"),
+    (date(2026,  5, 20), "Pioneros de Los Mochis",             88,  95, False, "Regular"),
+    (date(2026,  5, 22), "Astros de Jalisco",                  94,  86, False, "Playoffs"),
+    (date(2026,  5, 23), "Astros de Jalisco",                  84, 112, False, "Playoffs"),
+    (date(2026,  5, 26), "Astros de Jalisco",                  80,  94, True,  "Playoffs"),
+    (date(2026,  5, 27), "Astros de Jalisco",                  87,  95, True,  "Playoffs"),
+    (date(2026,  5, 29), "Astros de Jalisco",                 103, 105, True,  "Playoffs"),
 ]
 
 
 def seed():
     with app.app_context():
-        # Verificar si ya existe
         existe = Temporada.query.filter_by(anio=2026).first()
         if existe:
             print("⚠️  Ya existe una temporada 2026 en la base de datos.")
@@ -160,19 +145,17 @@ def seed():
             db.session.commit()
             print("   Temporada anterior eliminada.\n")
 
-        # ── 1. Temporada ──────────────────────────────────────────────────
         print("📅 Creando Temporada 2026...")
         temporada = Temporada(
             nombre="Temporada 2026",
             anio=2026,
             activa=True,
-            fecha_inicio=date(2026, 2, 21),
+            fecha_inicio=date(2026, 2, 22),
             fecha_fin=date(2026, 5, 29),
         )
         db.session.add(temporada)
         db.session.flush()
 
-        # ── 2. Jugadores ──────────────────────────────────────────────────
         print(f"🏀 Cargando {len(PLANTEL)} jugadores...")
         jugadores_map = {}
         for nombre, numero, posicion in PLANTEL:
@@ -187,12 +170,10 @@ def seed():
             db.session.flush()
             jugadores_map[nombre] = j
 
-        # ── 3. Partidos ───────────────────────────────────────────────────
         print(f"📋 Cargando {len(PARTIDOS)} partidos...")
         victorias = sum(1 for p in PARTIDOS if p[2] > p[3])
         derrotas  = sum(1 for p in PARTIDOS if p[2] < p[3])
 
-        # Usamos el PRIMER partido como contenedor de stats de temporada completa
         primer_partido = None
         for i, (fecha, rival, pts_cab, pts_rival, es_local, fase) in enumerate(PARTIDOS):
             resultado = 'V' if pts_cab > pts_rival else 'L'
@@ -213,8 +194,6 @@ def seed():
             if i == 0:
                 primer_partido = partido
 
-        # ── 4. Stats agregadas de temporada (en el partido inaugural) ─────
-        # Se cargan como totales de temporada para que aparezcan en estadísticas
         print(f"📊 Cargando stats de {len(STATS_TEMPORADA)} jugadores...")
         for (nombre, G, MIN, FGM, FGA, T3M, T3A, FTM, FTA, RO, RD, AST, ST, BS, TO, PTS) in STATS_TEMPORADA:
             if G == 0 or nombre not in jugadores_map:
@@ -253,7 +232,6 @@ def seed():
         print("=" * 58)
         print(f"  Jugadores : {len(PLANTEL)}")
         print(f"  Partidos  : {len(PARTIDOS)}  ({victorias}V - {derrotas}L)")
-        print(f"  Stats     : promedios reales cargados en partido inaugural")
         print()
         print("  LÍDERES DEL EQUIPO:")
         top = sorted([(n, PTS/G if G else 0) for n,G,_,_,_,_,_,_,_,_,_,_,_,_,_,PTS in STATS_TEMPORADA if G > 0], key=lambda x: -x[1])[:5]
